@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: MIT-0
 
 version: 0.2
-variables:
-  REPOSITORY_URI: 222634373323.dkr.ecr.us-east-1.amazonaws.com/sample-nginx
+env:
+  variables:
+    REPOSITORY_URI: 222634373323.dkr.ecr.us-east-1.amazonaws.com/sample-nginx
 phases:
   pre_build:
     commands:
