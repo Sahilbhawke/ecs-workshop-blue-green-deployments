@@ -47,13 +47,7 @@ jobs:
           --query 'taskDefinitionArns[1]' \
           --output text)
 
-        echo "::set-output name=TASK_DEFINITION_ARN::PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
-          --family-prefix $TASK_DEFINITION_NAME \
-          --region $REGION \
-          --sort DESC \
-          --max-items 2 \
-          --query 'taskDefinitionArns[1]' \
-          --output text)"
+        echo "::set-output name=TASK_DEFINITION_ARN::echo $PREVIOUS_TASK_DEF"
 
   update_ecs:
     runs-on: ubuntu-latest
