@@ -12,6 +12,10 @@ on:
         required: true
         default: 'bluegreen-service'  # You can provide a default or leave it empty
 
+permissions:
+  id-token: write  # Allow writing ID token for authentication
+  contents: read   # Allow reading the contents of the repository
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
