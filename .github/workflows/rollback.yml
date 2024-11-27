@@ -50,22 +50,6 @@ jobs:
     #       --task-definition ${{ github.event.inputs.task_def_arn }} \
     #       --region ${{ secrets.AWS_REGION }}
 
-    - name: Trigger CodeDeploy with Task Definition ARN from Inputs
-      run: |
-          # Construct the revision JSON with dynamic Task Definition ARN from inputs
-          DEPLOYMENT_GROUP_NAME="${{ github.event.inputs.deployment_group_name }}"
-          APPLICATION_NAME="${{ github.event.inputs.application_name }}"
-          TASK_DEFINITION_ARN="${{ github.event.inputs.task_def_arn }}
-          REVISION_JSON=$(cat <<EOF
-          {
-            "revisionType": "AppSpecContent",
-            "appSpecContent": {
-              "content": "{\"version\":1,\"Resources\":[{\"TargetService\":{\"Type\":\"AWS::ECS::Service\",\"Properties\":{\"TaskDefinition\":\"$TASK_DEFINITION_ARN\",\"LoadBalancerInfo\":{}}}}]}"
-            }
-          }
-          EOF
-          )
-
     - name: Trigger ECS Deployment via CodeDeploy
       run: |
         echo "Triggering a new deployment using AWS CodeDeploy..."
@@ -76,7 +60,7 @@ jobs:
         aws deploy create-deployment \
           --application-name $APPLICATION_NAME \
           --deployment-group-name $DEPLOYMENT_GROUP_NAME \
-          --revision "$REVISION_JSON"
+          --revision revisionType=AppSpecContent,appSpecContent="{\"version\": \"0.0\", \"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\", \"Properties\": {\"ClusterName\": \"${{ github.event.inputs.cluster-name }}\", \"ServiceName\": \"${{ github.event.inputs.service-name }}\", \"TaskDefinition\": \"${{ github.event.inputs.task_def_arn }}\"}}}]}" \
           --region ${{ secrets.AWS_REGION }}
     
         echo "Deployment triggered successfully using Task Definition ARN: ${{ github.event.inputs.task_def_arn }}"
