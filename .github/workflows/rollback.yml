@@ -1,0 +1,73 @@
+name: Deploy to ECS (Blue-Green with N-1 Task Revision)
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: 'ECS Cluster Name'
+        required: true
+        default: 'bluegreen-cluster'  # You can provide a default or leave it empty
+      service_name:
+        description: 'ECS Service Name'
+        required: true
+        default: 'bluegreen-service'  # You can provide a default or leave it empty
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Get the previous task definition (N-1)
+      id: fetch_taskdef
+      run: |
+        # Fetch the N-1 task definition revision
+        TASK_DEFINITION_NAME="nginx-sample"
+        REGION="${{ secrets.AWS_REGION }}"
+
+        # List the task definitions and get the N-1 revision (second most recent)
+        PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
+          --family-prefix $TASK_DEFINITION_NAME \
+          --region $REGION \
+          --sort DESC \
+          --max-items 2 \
+          --query 'taskDefinitionArns[1]' \
+          --output text)
+
+        # Output the ARN of the N-1 revision
+        echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
+
+        # Set output variable to be used in subsequent steps
+        echo "TASK_DEFINITION_ARN=$PREVIOUS_TASK_DEF" >> $GITHUB_ENV
+
+    - name: Update ECS Service with N-1 Task Definition
+      run: |
+        # Update the ECS service with the previous task definition revision
+        aws ecs update-service \
+          --cluster ${{ github.event.inputs.cluster_name }} \
+          --service ${{ github.event.inputs.service_name }} \
+          --task-definition ${{ env.TASK_DEFINITION_ARN }} \
+          --region ${{ secrets.AWS_REGION }}
+
+    - name: Monitor ECS Service Deployment
+      run: |
+        # Wait for the ECS service to stabilize with the new task definition
+        SERVICE_NAME=${{ github.event.inputs.service_name }}
+        CLUSTER_NAME=${{ github.event.inputs.cluster_name }}
+
+        # Poll until the service reaches a stable state
+        until [[ $(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query "services[0].status" --output text) == "ACTIVE" ]]; do
+          echo "Waiting for ECS service to stabilize..."
+          sleep 30
+        done
+
+        echo "Deployment to ECS is stable and complete."
