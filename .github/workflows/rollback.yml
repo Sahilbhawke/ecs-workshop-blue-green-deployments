@@ -37,7 +37,6 @@ jobs:
         # Fetch the N-1 task definition revision
         TASK_DEFINITION_NAME="nginx-sample"
         REGION="${{ secrets.AWS_REGION }}"
-        aws s3 ls
         # Fetch the N-1 task definition revision
         PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
           --family-prefix $TASK_DEFINITION_NAME \
@@ -46,6 +45,8 @@ jobs:
           --max-items 2 \
           --query 'taskDefinitionArns[1]' \
           --output text)
+
+        echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
 
         echo "::set-output name=TASK_DEFINITION_ARN::echo $PREVIOUS_TASK_DEF"
 
