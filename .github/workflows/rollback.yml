@@ -54,7 +54,7 @@ jobs:
 
     - name: Update ECS Service with N-1 Task Definition
       run: |
-        echo "Using Task Definition: $TASK_DEFINITION_ARN"
+        echo "Using Task Definition: $PREVIOUS_TASK_DEF"
         # Update the ECS service with the previous task definition revision
         aws ecs update-service \
           --cluster ${{ github.event.inputs.cluster_name }} \
