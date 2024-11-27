@@ -49,9 +49,6 @@ jobs:
         # Output the ARN of the N-1 revision
         echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
 
-        # Write to $GITHUB_ENV
-        echo "TASK_DEFINITION_ARN=\"$PREVIOUS_TASK_DEF\"" >> $GITHUB_ENV
-
         # Verify that TASK_DEFINITION_ARN is correctly set
         echo "TASK_DEFINITION_ARN is now: $PREVIOUS_TASK_DEF"
 
@@ -61,7 +58,7 @@ jobs:
         aws ecs update-service \
           --cluster ${{ github.event.inputs.cluster_name }} \
           --service ${{ github.event.inputs.service_name }} \
-          --task-definition ${{ env.TASK_DEFINITION_ARN }} \
+          --task-definition $PREVIOUS_TASK_DEF \
           --region ${{ secrets.AWS_REGION }}
 
     - name: Monitor ECS Service Deployment
