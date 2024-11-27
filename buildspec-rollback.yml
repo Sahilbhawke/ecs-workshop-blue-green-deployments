@@ -1,5 +1,6 @@
 version: 0.2
-
+variables:
+  TASK_EXECUTION_ARN: arn:aws:iam::222634373323:role/ecsTaskExecutionRole
 phases:
   build:
     commands:
