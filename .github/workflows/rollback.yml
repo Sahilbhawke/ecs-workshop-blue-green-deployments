@@ -29,39 +29,13 @@ jobs:
         aws-region: us-east-1
         role-to-assume: arn:aws:iam::222634373323:role/github-actions
 
-    - name: Get the previous task definition (N-1)
-      id: fetch_taskdef
-      run: |
-        # Fetch the N-1 task definition revision
-        TASK_DEFINITION_NAME="nginx-sample"
-        REGION="${{ secrets.AWS_REGION }}"
-        # Fetch the N-1 task definition revision
-        # PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
-        #   --family-prefix $TASK_DEFINITION_NAME \
-        #   --region $REGION \
-        #   --sort DESC \
-        #   --max-items 2 \
-        #   --query 'taskDefinitionArns[1]' \
-        #   --output text)
-
-        # echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
-        # export "TASK_DEFINITION_ARN:$PREVIOUS_TASK_DEF"
-        # echo "Exported Task Definition ARN: $TASK_DEFINITION_ARN"
-
     - name: Update ECS Service with N-1 Task Definition
       run: |
-        echo "Using Task Definition: $PREVIOUS_TASK_DEF"
         # Update the ECS service with the previous task definition revision
         aws ecs update-service \
           --cluster ${{ github.event.inputs.cluster_name }} \
           --service ${{ github.event.inputs.service_name }} \
-          --task-definition $(aws ecs list-task-definitions \
-          --family-prefix $TASK_DEFINITION_NAME \
-          --region $REGION \
-          --sort DESC \
-          --max-items 2 \
-          --query 'taskDefinitionArns[1]' \
-          --output text) \
+          --task-definition ${{ var.PREVIOUS_TASK_DEF }}\
           --region ${{ secrets.AWS_REGION }}
 
     - name: Monitor ECS Service Deployment
@@ -76,40 +50,3 @@ jobs:
           sleep 30
         done
         echo "Deployment to ECS is stable and complete."
-
-
-  # update_ecs:
-  #   runs-on: ubuntu-latest
-  #   needs: fetch_task_def
-  #   steps:
-  #   - name: Checkout Code
-  #     uses: actions/checkout@v2
-
-  #   - name: Set up AWS CLI
-  #     uses: aws-actions/configure-aws-credentials@v3
-  #     with:
-  #       aws-region: ${{ secrets.AWS_REGION }}
-  #       role-to-assume: arn:aws:iam::222634373323:role/github-actions
-        
-  #   - name: Update ECS Service with N-1 Task Definition
-  #     run: |
-  #       TASK_DEFINITION_ARN="${{ needs.fetch_task_def.outputs.task_definition_arn }}"
-  #       echo "Using Task Definition: $TASK_DEFINITION_ARN"
-  #       # Update the ECS service with the previous task definition revision
-  #       aws ecs update-service \
-  #         --cluster ${{ github.event.inputs.cluster_name }} \
-  #         --service ${{ github.event.inputs.service_name }} \
-  #         --task-definition $TASK_DEFINITION_ARN \
-  #         --region ${{ secrets.AWS_REGION }}
-
-  #   - name: Monitor ECS Service Deployment
-  #     run: |
-  #       # Wait for the ECS service to stabilize with the new task definition
-  #       SERVICE_NAME=${{ github.event.inputs.service_name }}
-  #       CLUSTER_NAME=${{ github.event.inputs.cluster_name }}
-
-  #       # Poll until the service reaches a stable state
-  #       until [[ $(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query "services[0].status" --output text) == "ACTIVE" ]]; do
-  #         echo "Waiting for ECS service to stabilize..."
-  #         sleep 30
-  #       done
