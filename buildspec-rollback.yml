@@ -10,7 +10,7 @@ phases:
       - TASK_DEFINITIONS=$(aws ecs list-task-definitions --family-prefix "nginx-sample" --sort DESC --query "taskDefinitionArns" --output text)
 
       # Select the most recent task definition ARN or use other logic to select a revision
-      - SELECTED_TASK_DEF_ARN=$(echo $TASK_DEFINITIONS | awk '{print $2}')  # Choose the most recent revision
+      - SELECTED_TASK_DEF_ARN=$(echo $TASK_DEFINITIONS | awk '{print $6}')  # Choose the most recent revision
       - echo "Selected ECS Task Definition ARN:$SELECTED_TASK_DEF_ARN"
 
       # Optionally, register a new task definition revision if required (can be skipped if not needed)
@@ -21,6 +21,9 @@ phases:
     commands:
       - echo "Selected Task Definition ARN:$SELECTED_TASK_DEF_ARN"
       - echo "Saving task definition ARN for the Deploy Stage..."
+      - echo update the roles in task definition...
+      - sed -i 's@TASK_EXECUTION_ARN@'$TASK_EXECUTION_ARN'@g' taskdef.json
+      - sed -i 's@<TASK_DEFINITION>@'$SELECTED_TASK_DEF_ARN'g' appspec.yaml
       - echo "TASK_DEF_ARN=$SELECTED_TASK_DEF_ARN" > build-output.txt
 artifacts:
   files:
