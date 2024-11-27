@@ -28,7 +28,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v3
       with:
         aws-region: us-east-1
-        role-to-assume: arn:aws:iam::222634373323:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_DevopsAdminAccess_62e0d76024811eb1
+        role-to-assume: arn:aws:iam::222634373323:role/github-actions
 
     - name: Get the previous task definition (N-1)
       id: fetch_taskdef
