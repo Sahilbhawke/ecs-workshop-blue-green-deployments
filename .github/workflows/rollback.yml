@@ -60,7 +60,7 @@ jobs:
         aws deploy create-deployment \
           --application-name $APPLICATION_NAME \
           --deployment-group-name $DEPLOYMENT_GROUP_NAME \
-          --revision revisionType=AppSpecContent,appSpecContent="{\"version\": \"0.0\", \"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\", \"Properties\": {\"ClusterName\": \"${{ github.event.inputs.cluster-name }}\", \"ServiceName\": \"${{ github.event.inputs.service-name }}\", \"TaskDefinition\": \"${{ github.event.inputs.task_def_arn }}\"}}}]}" \
+          --revision revisionType=AppSpecContent,appSpecContent="{\"version\": \"0.0\", \"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\", \"Properties\": {\"ClusterName\": \"${{ github.event.inputs.cluster_name }}\", \"ServiceName\": \"${{ github.event.inputs.service_name }}\", \"TaskDefinition\": \"${{ github.event.inputs.task_def_arn }}\"}}}]}" \
           --region ${{ secrets.AWS_REGION }}
     
         echo "Deployment triggered successfully using Task Definition ARN: ${{ github.event.inputs.task_def_arn }}"
