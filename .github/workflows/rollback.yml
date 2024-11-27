@@ -3,14 +3,14 @@ name: Deploy to ECS (Blue-Green with N-1 Task Revision)
 on:
   workflow_dispatch:
     inputs:
-      # cluster_name:
-      #   description: 'ECS Cluster Name'
-      #   required: true
-      #   default: 'bluegreen-cluster'  # You can provide a default or leave it empty
-      # service_name:
-      #   description: 'ECS Service Name'
-      #   required: true
-      #   default: 'bluegreen-service'  # You can provide a default or leave it empty
+      cluster_name:
+        description: 'ECS Cluster Name'
+        required: true
+        default: 'bluegreen-cluster'  # You can provide a default or leave it empty
+      service_name:
+        description: 'ECS Service Name'
+        required: true
+        default: 'bluegreen-service'  # You can provide a default or leave it empty
       application_name:
         description: 'CodeDeploy Application Name'
         required: true
