@@ -52,8 +52,8 @@ jobs:
         REVISION_JSON="{\"version\": \"0.0\", \"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\", \"Properties\": {\"ClusterName\": \"${{ github.event.inputs.cluster_name }}\", \"ServiceName\": \"${{ github.event.inputs.service_name }}\", \"TaskDefinition\": \"${{ github.event.inputs.task_def_arn }}\"}}}]}"
 
         aws deploy create-deployment \
-          --application-name ${{ github.event.inputs.application-name }} \
-          --deployment-group-name ${{ github.event.inputs.deployment-group }} \
+          --application-name ${{ github.event.inputs.application_name }} \
+          --deployment-group-name ${{ github.event.inputs.deployment_group_name }} \
           --revision revisionType=AppSpecContent,appSpecContent="$REVISION_JSON" \
           --deployment-config-name CodeDeployDefault.ECSAllAtOnce \
           --description "Rollback ECS service to previous revision" \
