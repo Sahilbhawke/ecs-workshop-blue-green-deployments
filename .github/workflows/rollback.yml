@@ -46,6 +46,7 @@ jobs:
           --query 'taskDefinitionArns[1]' \
           --output text)
 
+        echo "$PREVIOUS_TASK_DEF"
         # Output the ARN of the N-1 revision
         echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
 
