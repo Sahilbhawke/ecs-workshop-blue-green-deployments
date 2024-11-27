@@ -59,7 +59,7 @@ jobs:
         PREVIOUS_TASK_DEF=$(echo "$PREVIOUS_TASK_DEF" | tr -d '\r' | tr -d '\n')
 
         # Save to GITHUB_ENV
-        echo "TASK_DEFINITION_ARN=$PREVIOUS_TASK_DEF" >> $GITHUB_ENV
+        echo "TASK_DEFINITION_ARN:$PREVIOUS_TASK_DEF" >> $GITHUB_ENV
 
     - name: Update ECS Service with N-1 Task Definition
       run: |
