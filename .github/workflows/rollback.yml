@@ -53,11 +53,14 @@ jobs:
     - name: Trigger CodeDeploy with Task Definition ARN from Inputs
       run: |
           # Construct the revision JSON with dynamic Task Definition ARN from inputs
+          DEPLOYMENT_GROUP_NAME="${{ github.event.inputs.deployment_group_name }}"
+          APPLICATION_NAME="${{ github.event.inputs.application_name }}"
+          TASK_DEFINITION_ARN="${{ github.event.inputs.task_def_arn }}
           REVISION_JSON=$(cat <<EOF
           {
             "revisionType": "AppSpecContent",
             "appSpecContent": {
-              "content": "{\"version\":1,\"Resources\":[{\"TargetService\":{\"Type\":\"AWS::ECS::Service\",\"Properties\":{\"TaskDefinition\":\"${{ github.event.inputs.task_def_arn }}\",\"LoadBalancerInfo\":{}}}}]}"
+              "content": "{\"version\":1,\"Resources\":[{\"TargetService\":{\"Type\":\"AWS::ECS::Service\",\"Properties\":{\"TaskDefinition\":\"$TASK_DEFINITION_ARN\",\"LoadBalancerInfo\":{}}}}]}"
             }
           }
           EOF
