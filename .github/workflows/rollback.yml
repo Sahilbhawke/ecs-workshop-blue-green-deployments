@@ -1,0 +1,88 @@
+name: Deploy to ECS (Blue-Green with N-1 Task Revision)
+
+on:
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: 'ECS Cluster Name'
+        required: true
+        default: 'bluegreen-cluster'  # You can provide a default or leave it empty
+      service_name:
+        description: 'ECS Service Name'
+        required: true
+        default: 'bluegreen-service'  # You can provide a default or leave it empty
+
+permissions:
+  id-token: write  # Allow writing ID token for authentication
+  contents: read   # Allow reading the contents of the repository
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-region: us-east-1
+        role-to-assume: arn:aws:iam::222634373323:role/github-actions
+
+    - name: Get the previous task definition (N-1)
+      id: fetch_taskdef
+      run: |
+        # Fetch the N-1 task definition revision
+        TASK_DEFINITION_NAME="nginx-sample"
+        REGION="${{ secrets.AWS_REGION }}"
+
+        # List the task definitions and get the N-1 revision (second most recent)
+        PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
+          --family-prefix $TASK_DEFINITION_NAME \
+          --region $REGION \
+          --sort DESC \
+          --max-items 2 \
+          --query 'taskDefinitionArns[1]' \
+          --output text)
+
+        # Output the ARN of the N-1 revision
+        echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
+
+        # Check if PREVIOUS_TASK_DEF is empty or None
+        if [ -z "$PREVIOUS_TASK_DEF" ] || [ "$PREVIOUS_TASK_DEF" == "None" ]; then
+          echo "No previous task definition found. Exiting."
+          exit 1
+        fi
+
+        # Clean up PREVIOUS_TASK_DEF (remove any unwanted characters)
+        PREVIOUS_TASK_DEF=$(echo "$PREVIOUS_TASK_DEF" | tr -d '\r' | tr -d '\n')
+
+        # Write to $GITHUB_ENV
+        echo "TASK_DEFINITION_ARN=\"$PREVIOUS_TASK_DEF\"" >> $GITHUB_ENV
+
+        # Verify that TASK_DEFINITION_ARN is correctly set
+        echo "TASK_DEFINITION_ARN is now: $TASK_DEFINITION_ARN"
+
+    - name: Update ECS Service with N-1 Task Definition
+      run: |
+        # Update the ECS service with the previous task definition revision
+        aws ecs update-service \
+          --cluster ${{ github.event.inputs.cluster_name }} \
+          --service ${{ github.event.inputs.service_name }} \
+          --task-definition ${{ env.TASK_DEFINITION_ARN }} \
+          --region ${{ secrets.AWS_REGION }}
+
+    - name: Monitor ECS Service Deployment
+      run: |
+        # Wait for the ECS service to stabilize with the new task definition
+        SERVICE_NAME=${{ github.event.inputs.service_name }}
+        CLUSTER_NAME=${{ github.event.inputs.cluster_name }}
+
+        # Poll until the service reaches a stable state
+        until [[ $(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --query "services[0].status" --output text) == "ACTIVE" ]]; do
+          echo "Waiting for ECS service to stabilize..."
+          sleep 30
+        done
+
+        echo "Deployment to ECS is stable and complete."
