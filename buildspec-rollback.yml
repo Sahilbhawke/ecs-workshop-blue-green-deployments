@@ -23,7 +23,7 @@ phases:
       - echo "Saving task definition ARN for the Deploy Stage..."
       - echo update the roles in task definition...
       - sed -i 's@TASK_EXECUTION_ARN@'$TASK_EXECUTION_ARN'@g' taskdef.json
-      - sed -i 's@<TASK_DEFINITION>@'$SELECTED_TASK_DEF_ARN'g' appspec.yaml
+      - sed -i 's@<TASK_DEFINITION>@'$SELECTED_TASK_DEF_ARN'@g' appspec.yaml
       - echo "TASK_DEF_ARN=$SELECTED_TASK_DEF_ARN" > build-output.txt
 artifacts:
   files:
