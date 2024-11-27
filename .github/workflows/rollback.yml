@@ -3,14 +3,22 @@ name: Deploy to ECS (Blue-Green with N-1 Task Revision)
 on:
   workflow_dispatch:
     inputs:
-      cluster_name:
-        description: 'ECS Cluster Name'
+      # cluster_name:
+      #   description: 'ECS Cluster Name'
+      #   required: true
+      #   default: 'bluegreen-cluster'  # You can provide a default or leave it empty
+      # service_name:
+      #   description: 'ECS Service Name'
+      #   required: true
+      #   default: 'bluegreen-service'  # You can provide a default or leave it empty
+      application_name:
+        description: 'CodeDeploy Application Name'
         required: true
-        default: 'bluegreen-cluster'  # You can provide a default or leave it empty
-      service_name:
-        description: 'ECS Service Name'
+        default: 'bluegreen'
+      deployment_group_name:
+        description: 'CodeDeploy Deployment Group Name'
         required: true
-        default: 'bluegreen-service'  # You can provide a default or leave it empty
+        default: 'bluegreen'
       task_def_arn:
         description: 'Speicfy The Task-Def Arn'
         required: true
@@ -33,14 +41,30 @@ jobs:
         aws-region: us-east-1
         role-to-assume: arn:aws:iam::222634373323:role/github-actions
 
-    - name: Update ECS Service with N-1 Task Definition
+    # - name: Update ECS Service with N-1 Task Definition
+    #   run: |
+    #     # Update the ECS service with the previous task definition revision
+    #     aws ecs update-service \
+    #       --cluster ${{ github.event.inputs.cluster_name }} \
+    #       --service ${{ github.event.inputs.service_name }} \
+    #       --task-definition ${{ github.event.inputs.task_def_arn }} \
+    #       --region ${{ secrets.AWS_REGION }}
+
+    - name: Trigger ECS Deployment via CodeDeploy
       run: |
-        # Update the ECS service with the previous task definition revision
-        aws ecs update-service \
-          --cluster ${{ github.event.inputs.cluster_name }} \
-          --service ${{ github.event.inputs.service_name }} \
-          --task-definition ${{ github.event.inputs.task_def_arn }} \
+        echo "Triggering a new deployment using AWS CodeDeploy..."
+        DEPLOYMENT_GROUP_NAME="${{ github.event.inputs.deployment_group_name }}"
+        APPLICATION_NAME="${{ github.event.inputs.application_name }}"
+        TASK_DEFINITION_ARN="${{ github.event.inputs.task_def_arn }}"
+        
+        aws deploy create-deployment \
+          --application-name $APPLICATION_NAME \
+          --deployment-group-name $DEPLOYMENT_GROUP_NAME \
+          --revision "{\"revisionType\": \"AppSpecContent\", \"appSpecContent\": {\"content\": \"{\\\"version\\\":1,\\\"Resources\\\":[{\\\"TargetService\\\":{\\\"Type\\\":\\\"AWS::ECS::Service\\\",\\\"Properties\\\":{\\\"TaskDefinition\\\":\\\"${{ github.event.inputs.task_def_arn }}\\\",\\\"LoadBalancerInfo\\\":{}}}}]}}\"}" \
           --region ${{ secrets.AWS_REGION }}
+    
+        echo "Deployment triggered successfully using Task Definition ARN: ${{ github.event.inputs.task_def_arn }}"
+
 
     - name: Monitor ECS Service Deployment
       run: |
