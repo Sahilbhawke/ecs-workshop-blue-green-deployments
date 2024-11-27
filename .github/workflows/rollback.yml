@@ -73,6 +73,8 @@ jobs:
           echo "Waiting for ECS service to stabilize..."
           sleep 30
         done
+        echo "Deployment to ECS is stable and complete."
+
 
   # update_ecs:
   #   runs-on: ubuntu-latest
@@ -109,5 +111,3 @@ jobs:
   #         echo "Waiting for ECS service to stabilize..."
   #         sleep 30
   #       done
-
-        echo "Deployment to ECS is stable and complete."
