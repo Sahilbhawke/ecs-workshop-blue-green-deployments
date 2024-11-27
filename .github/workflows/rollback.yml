@@ -35,7 +35,7 @@ jobs:
         aws ecs update-service \
           --cluster ${{ github.event.inputs.cluster_name }} \
           --service ${{ github.event.inputs.service_name }} \
-          --task-definition ${{ var.PREVIOUS_TASK_DEF }}\
+          --task-definition ${{ env.PREVIOUS_TASK_DEF }}\
           --region ${{ secrets.AWS_REGION }}
 
     - name: Monitor ECS Service Deployment
