@@ -19,8 +19,6 @@ permissions:
 jobs:
   fetch_task_def:
     runs-on: ubuntu-latest
-    outputs: 
-      task_definition_arn: ${{ steps.fetch_taskdef.outputs.TASK_DEFINITION_ARN }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -38,17 +36,17 @@ jobs:
         TASK_DEFINITION_NAME="nginx-sample"
         REGION="${{ secrets.AWS_REGION }}"
         # Fetch the N-1 task definition revision
-        PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
-          --family-prefix $TASK_DEFINITION_NAME \
-          --region $REGION \
-          --sort DESC \
-          --max-items 2 \
-          --query 'taskDefinitionArns[1]' \
-          --output text)
+        # PREVIOUS_TASK_DEF=$(aws ecs list-task-definitions \
+        #   --family-prefix $TASK_DEFINITION_NAME \
+        #   --region $REGION \
+        #   --sort DESC \
+        #   --max-items 2 \
+        #   --query 'taskDefinitionArns[1]' \
+        #   --output text)
 
-        echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
-        export "TASK_DEFINITION_ARN:$PREVIOUS_TASK_DEF"
-        echo "Exported Task Definition ARN: $TASK_DEFINITION_ARN"
+        # echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
+        # export "TASK_DEFINITION_ARN:$PREVIOUS_TASK_DEF"
+        # echo "Exported Task Definition ARN: $TASK_DEFINITION_ARN"
 
     - name: Update ECS Service with N-1 Task Definition
       run: |
@@ -57,7 +55,13 @@ jobs:
         aws ecs update-service \
           --cluster ${{ github.event.inputs.cluster_name }} \
           --service ${{ github.event.inputs.service_name }} \
-          --task-definition "$TASK_DEFINITION_ARN" \
+          --task-definition $(aws ecs list-task-definitions \
+          --family-prefix $TASK_DEFINITION_NAME \
+          --region $REGION \
+          --sort DESC \
+          --max-items 2 \
+          --query 'taskDefinitionArns[1]' \
+          --output text) \
           --region ${{ secrets.AWS_REGION }}
 
     - name: Monitor ECS Service Deployment
