@@ -19,13 +19,13 @@ on:
         description: 'CodeDeploy Deployment Group Name'
         required: true
         default: 'bluegreen'
-      deployment-id:
-        description: 'Deployment ID for Rollback'
-        required: true
-      # task_def_arn:
-      #   description: 'Speicfy The Task-Def Arn'
+      # deployment-id:
+      #   description: 'Deployment ID for Rollback'
       #   required: true
-      #   default: 'arn:aws:ecs:us-east-1:222634373323:task-definition/nginx-sample:'
+      task_def_arn:
+        description: 'Speicfy The Task-Def Arn'
+        required: true
+        default: 'arn:aws:ecs:us-east-1:222634373323:task-definition/nginx-sample:'
 
 permissions:
   id-token: write  # Allow writing ID token for authentication
@@ -44,14 +44,16 @@ jobs:
         aws-region: ${{ secrets.AWS_REGION }}
         role-to-assume: arn:aws:iam::222634373323:role/github-actions
 
-    - name: Trigger Rollback
+    - name: Rollback ECS Service to Previous Task Definition
       run: |
-        echo "Rolling back to previous ECS revision using Deployment ID: ${{ github.event.inputs.deployment-id }}"
-
-        # Use AWS CLI to continue the deployment or trigger rollback based on failure
-        aws deploy continue-deployment \
-          --deployment-id ${{ github.event.inputs.deployment-id }} \
-          --action "ROLLBACK" \
+        echo "Rolling back ECS service to the previous task definition: ${{ github.event.inputs.task_def_arn }}"
+        
+        # Update the ECS service with the previous task definition ARN
+        aws ecs update-service \
+          --cluster ${{ github.event.inputs.cluster_name }} \
+          --service ${{ github.event.inputs.service_name }} \
+          --task-definition ${{ github.event.inputs.task_def_arn }} \
+          --force-new-deployment \
           --region ${{ secrets.AWS_REGION }}
 
     # - name: Update ECS Service with N-1 Task Definition
