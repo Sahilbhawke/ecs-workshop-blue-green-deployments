@@ -46,18 +46,8 @@ jobs:
           --query 'taskDefinitionArns[1]' \
           --output text)
 
-        echo "$PREVIOUS_TASK_DEF"
         # Output the ARN of the N-1 revision
         echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
-
-        # Check if PREVIOUS_TASK_DEF is empty or None
-        if [ -z "$PREVIOUS_TASK_DEF" ] || [ "$PREVIOUS_TASK_DEF" == "None" ]; then
-          echo "No previous task definition found. Exiting."
-          exit 1
-        fi
-
-        # Clean up PREVIOUS_TASK_DEF (remove any unwanted characters)
-        PREVIOUS_TASK_DEF=$(echo "$PREVIOUS_TASK_DEF" | tr -d '\r' | tr -d '\n')
 
         # Write to $GITHUB_ENV
         echo "TASK_DEFINITION_ARN=\"$PREVIOUS_TASK_DEF\"" >> $GITHUB_ENV
