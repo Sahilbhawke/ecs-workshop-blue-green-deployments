@@ -63,7 +63,7 @@ jobs:
         echo "TASK_DEFINITION_ARN=\"$PREVIOUS_TASK_DEF\"" >> $GITHUB_ENV
 
         # Verify that TASK_DEFINITION_ARN is correctly set
-        echo "TASK_DEFINITION_ARN is now: $TASK_DEFINITION_ARN"
+        echo "TASK_DEFINITION_ARN is now: $PREVIOUS_TASK_DEF"
 
     - name: Update ECS Service with N-1 Task Definition
       run: |
