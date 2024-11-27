@@ -49,7 +49,7 @@ jobs:
         echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
 
         export "TASK_DEFINITION_ARN=$PREVIOUS_TASK_DEF"
-
+        echo "$TASK_DEFINITION_ARN"
         echo "::set-output name=TASK_DEFINITION_ARN::echo $PREVIOUS_TASK_DEF"
 
   update_ecs:
