@@ -1,23 +1,16 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      docker: 18
-    commands:
-      - echo "Installing dependencies..."
-      - yum install -y jq
-
   build:
     commands:
       - echo "Fetching ECS task definition revisions..."
 
       # List ECS task definitions and get the ARN for the most recent revision
-      TASK_DEFINITIONS=$(aws ecs list-task-definitions --family-prefix "nginx-sample" --sort DESC --query "taskDefinitionArns" --output text)
+      - TASK_DEFINITIONS=$(aws ecs list-task-definitions --family-prefix "nginx-sample" --sort DESC --query "taskDefinitionArns" --output text)
 
       # Select the most recent task definition ARN or use other logic to select a revision
-      SELECTED_TASK_DEF_ARN=$(echo $TASK_DEFINITIONS | awk '{print $2}')  # Choose the most recent revision
-      echo "Selected ECS Task Definition ARN: $SELECTED_TASK_DEF_ARN"
+      - SELECTED_TASK_DEF_ARN=$(echo $TASK_DEFINITIONS | awk '{print $2}')  # Choose the most recent revision
+      - echo "Selected ECS Task Definition ARN:$SELECTED_TASK_DEF_ARN"
 
       # Optionally, register a new task definition revision if required (can be skipped if not needed)
       # echo "Registering new task definition revision..."
@@ -25,7 +18,7 @@ phases:
 
   post_build:
     commands:
-      - echo "Selected Task Definition ARN: $SELECTED_TASK_DEF_ARN"
+      - echo "Selected Task Definition ARN:$SELECTED_TASK_DEF_ARN"
       - echo "Saving task definition ARN for the Deploy Stage..."
       - echo "TASK_DEF_ARN=$SELECTED_TASK_DEF_ARN" > build-output.txt
 artifacts:
