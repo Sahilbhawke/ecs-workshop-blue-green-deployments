@@ -11,6 +11,10 @@ on:
         description: 'ECS Service Name'
         required: true
         default: 'bluegreen-service'  # You can provide a default or leave it empty
+      task_def_arn:
+        description: 'Speicfy The Task-Def Arn'
+        required: true
+        default: 'arn:aws:ecs:us-east-1:222634373323:task-definition/nginx-sample:'
 
 permissions:
   id-token: write  # Allow writing ID token for authentication
@@ -35,7 +39,7 @@ jobs:
         aws ecs update-service \
           --cluster ${{ github.event.inputs.cluster_name }} \
           --service ${{ github.event.inputs.service_name }} \
-          --task-definition ${{ env.PREVIOUS_TASK_DEF }}\
+          --task-definition ${{ github.event.inputs.task_def_arn }} \
           --region ${{ secrets.AWS_REGION }}
 
     - name: Monitor ECS Service Deployment
