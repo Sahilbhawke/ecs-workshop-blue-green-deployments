@@ -47,10 +47,7 @@ jobs:
           --output text)
 
         echo "Previous Task Definition: $PREVIOUS_TASK_DEF"
-
-        export "TASK_DEFINITION_ARN=$PREVIOUS_TASK_DEF"
-        echo "$TASK_DEFINITION_ARN"
-        echo "::set-output name=TASK_DEFINITION_ARN::echo $PREVIOUS_TASK_DEF"
+        echo "TASK_DEFINITION_ARN=$PREVIOUS_TASK_DEF" >> $GITHUB_ENV
 
     - name: Update ECS Service with N-1 Task Definition
       run: |
